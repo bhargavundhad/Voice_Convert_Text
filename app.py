@@ -22,21 +22,7 @@ chunk_minutes = st.sidebar.slider("Chunk length (minutes)", 1, 10, 5)
 summary_mode = st.sidebar.selectbox("Summary verbosity", ["concise", "detailed"])
 throttle_seconds = st.sidebar.slider("Throttle between chunk requests (s)", 1, 10, 3)
 
-# Rate limiting info for free tier users
-with st.sidebar.expander("💡 API Usage Tips (Important for Free Tier)"):
-    st.markdown("""
-    **Free tier Google Gemini has strict limits:**
-    - 📊 **15 requests per minute maximum**
-    - ⏱️ **Wait 2-3 minutes between processing sessions**
-    - 📏 **Keep audio files under 5 minutes for testing**
-    - 🔧 **Use 3+ seconds throttle delay**
-    
-    **If you get rate limit errors:**
-    - ⏸️ **Stop and wait 2-3 minutes**
-    - 📱 **Try smaller audio files**
-    - ⚙️ **Increase throttle delay to 5-10 seconds**
-    - 📈 **Consider upgrading to paid tier for heavy usage**
-    """)
+
 
 # Processing status with better warnings
 processing_warning = st.empty()
