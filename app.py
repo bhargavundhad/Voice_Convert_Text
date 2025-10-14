@@ -4,7 +4,7 @@ warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 from pydub import AudioSegment
 AudioSegment.ffmpeg = "/usr/bin/ffmpeg"
-AudioSegment.ffprobe = "/usr/bin/ffprobe"
+AudioSegment.ffprobe = "/usr/local/bin/ffprobe"
 
 import os
 print("ffprobe exists:", os.path.exists("/usr/bin/ffprobe"))
