@@ -7,6 +7,14 @@ AudioSegment.ffmpeg = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/f
 AudioSegment.ffprobe = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffprobe.exe"
 
 import os
+# Ensure repository root is on sys.path so local packages (like `utils`) can
+# be imported reliably even when Streamlit or other runners change cwd.
+from pathlib import Path
+import sys
+repo_root = Path(__file__).resolve().parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+
 # print("ffprobe exists:", os.path.exists("/usr/bin/ffprobe"))
 
 import time
