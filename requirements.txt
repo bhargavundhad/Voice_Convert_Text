@@ -7,5 +7,5 @@ fpdf
 tqdm
 ffmpeg
 ffprobe
-libav-tools
+
 
