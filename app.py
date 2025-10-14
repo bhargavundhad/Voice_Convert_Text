@@ -2,21 +2,19 @@
 import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
-from pydub import AudioSegment
 import platform
 
-# If you're running locally on Windows you may have a custom ffmpeg build.
-# Only set those hard-coded Windows paths when running on Windows and the
-# files actually exist. This prevents Linux deployments (Streamlit Cloud)
-# from trying to use invalid Windows paths.
+# If running locally on Windows with a custom ffmpeg build, set environment
+# variables early so pydub (imported later in utils) sees them. Do NOT import
+# pydub here — importing pydub now would trigger the same ffmpeg/ffprobe
+# warnings on platforms where binaries are missing.
 if platform.system() == "Windows":
     win_ffmpeg = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffmpeg.exe"
     win_ffprobe = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffprobe.exe"
     if os.path.exists(win_ffmpeg):
-        # pydub expects converter attribute for ffmpeg
-        AudioSegment.converter = win_ffmpeg
+        os.environ.setdefault("FFMPEG_PATH", win_ffmpeg)
     if os.path.exists(win_ffprobe):
-        AudioSegment.ffprobe = win_ffprobe
+        os.environ.setdefault("FFPROBE_PATH", win_ffprobe)
 
 import os
 # Ensure repository root is on sys.path so local packages (like `utils`) can
@@ -40,6 +38,7 @@ load_dotenv()
 from utils.audio_utils import ensure_wav_mono_16k, chunk_audio, duration_seconds
 from utils.gemini_client import upload_file, transcribe_file, summarize_text, answer_question
 from utils.export_utils import create_docx_from_text, create_pdf_from_text
+from utils.audio_utils import ensure_ffmpeg_available
 
 
 
@@ -58,6 +57,13 @@ throttle_seconds = st.sidebar.slider("Throttle between chunk requests (s)", 1, 1
 
 # Processing status with better warnings
 processing_warning = st.empty()
+
+# Fail early with a clear message if ffmpeg/ffprobe are not available.
+try:
+    ensure_ffmpeg_available(raise_on_missing=True)
+except RuntimeError as e:
+    st.error(str(e))
+    st.stop()
 if st.session_state.get('last_processing_time'):
     import time
     time_since_last = time.time() - st.session_state['last_processing_time']

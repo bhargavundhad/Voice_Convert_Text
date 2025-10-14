@@ -3,9 +3,27 @@ import os
 import math
 import tempfile
 from pathlib import Path
+import warnings
+
+# Try to configure ffmpeg/ffprobe from imageio-ffmpeg BEFORE importing pydub.
+# This prevents pydub from emitting "Couldn't find ffmpeg/ffprobe" warnings
+# during import in environments where system binaries are missing.
+try:
+    import imageio_ffmpeg
+    _img_ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    if _img_ffmpeg:
+        # Set environment variables early so pydub picks them up without warnings
+        os.environ.setdefault("FFMPEG_PATH", _img_ffmpeg)
+        # Try to locate ffprobe next to ffmpeg
+        candidate_probe = os.path.join(os.path.dirname(_img_ffmpeg), "ffprobe")
+        if os.path.exists(candidate_probe):
+            os.environ.setdefault("FFPROBE_PATH", candidate_probe)
+except Exception:
+    # imageio-ffmpeg not available — we'll handle later
+    _img_ffmpeg = None
+
 from pydub import AudioSegment
 from pydub.utils import which
-import warnings
 
 # Allow overriding ffmpeg/ffprobe via environment variables. This helps deployments
 # (Streamlit Cloud, Docker, servers) where system ffmpeg may be missing or in a
@@ -54,6 +72,38 @@ if not getattr(AudioSegment, "converter", None) or not getattr(AudioSegment, "ff
         "As a workaround, consider adding 'imageio-ffmpeg' to requirements.txt so a bundled ffmpeg is available.",
         RuntimeWarning,
     )
+
+def ffmpeg_status():
+    """Return (ffmpeg_path, ffprobe_path, ok_bool) where ok_bool is True if both are set."""
+    conv = getattr(AudioSegment, "converter", None)
+    probe = getattr(AudioSegment, "ffprobe", None)
+    return conv, probe, bool(conv and probe)
+
+
+def ensure_ffmpeg_available(raise_on_missing: bool = True):
+    """Ensure ffmpeg/ffprobe are available for audio conversion.
+
+    If raise_on_missing is True this raises RuntimeError with an actionable
+    message explaining how to fix the environment. Otherwise returns False.
+    """
+    conv, probe, ok = ffmpeg_status()
+    if ok:
+        return True
+
+    msg_lines = [
+        "ffmpeg or ffprobe not available for audio conversion.",
+        "Possible fixes:",
+        " 1) Add 'imageio-ffmpeg' to requirements.txt so a bundled ffmpeg is available in the virtualenv.",
+        " 2) Set environment variables FFMPEG_PATH and FFPROBE_PATH to the full paths of ffmpeg/ffprobe.",
+        " 3) Install system ffmpeg on the host (apt/yum/brew or include in your Docker image).",
+        "\nCurrent detection:",
+        f"  ffmpeg (pydub AudioSegment.converter) = {conv}",
+        f"  ffprobe (pydub AudioSegment.ffprobe) = {probe}",
+    ]
+    msg = "\n".join(msg_lines)
+    if raise_on_missing:
+        raise RuntimeError(msg)
+    return False
 
 def ensure_wav_mono_16k(src_path: str, out_path: str = None):
     """
