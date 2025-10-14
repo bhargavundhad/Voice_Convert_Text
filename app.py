@@ -3,8 +3,20 @@ import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 from pydub import AudioSegment
-AudioSegment.ffmpeg = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffmpeg.exe"
-AudioSegment.ffprobe = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffprobe.exe"
+import platform
+
+# If you're running locally on Windows you may have a custom ffmpeg build.
+# Only set those hard-coded Windows paths when running on Windows and the
+# files actually exist. This prevents Linux deployments (Streamlit Cloud)
+# from trying to use invalid Windows paths.
+if platform.system() == "Windows":
+    win_ffmpeg = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffmpeg.exe"
+    win_ffprobe = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffprobe.exe"
+    if os.path.exists(win_ffmpeg):
+        # pydub expects converter attribute for ffmpeg
+        AudioSegment.converter = win_ffmpeg
+    if os.path.exists(win_ffprobe):
+        AudioSegment.ffprobe = win_ffprobe
 
 import os
 # Ensure repository root is on sys.path so local packages (like `utils`) can

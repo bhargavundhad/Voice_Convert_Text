@@ -29,10 +29,29 @@ else:
     _found_probe = which("ffprobe")
     if _found_probe:
         AudioSegment.ffprobe = _found_probe
+# Try imageio-ffmpeg as a fallback (works on many cloud platforms when ffmpeg
+# isn't installed system-wide). This avoids the frequent RuntimeWarning and the
+# 'No such file or directory: ffprobe' error during conversions.
+if (not getattr(AudioSegment, "converter", None)) or (not getattr(AudioSegment, "ffprobe", None)):
+    try:
+        import imageio_ffmpeg
+        # imageio_ffmpeg.get_ffmpeg_exe() provides a bundled ffmpeg binary path
+        _img_ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        if _img_ffmpeg and not getattr(AudioSegment, "converter", None):
+            AudioSegment.converter = _img_ffmpeg
+        # imageio_ffmpeg doesn't always expose ffprobe; try to find ffprobe near ffmpeg
+        if _img_ffmpeg and not getattr(AudioSegment, "ffprobe", None):
+            candidate = os.path.join(os.path.dirname(_img_ffmpeg), "ffprobe")
+            if os.path.exists(candidate):
+                AudioSegment.ffprobe = candidate
+    except Exception:
+        # imageio-ffmpeg not available or failed — fall back to warning.
+        pass
 
 if not getattr(AudioSegment, "converter", None) or not getattr(AudioSegment, "ffprobe", None):
     warnings.warn(
-        "ffmpeg or ffprobe not configured. Install ffmpeg on the system or set FFMPEG_PATH and FFPROBE_PATH environment variables.",
+        "ffmpeg or ffprobe not configured. On Streamlit Cloud install ffmpeg or set FFMPEG_PATH and FFPROBE_PATH environment variables. "
+        "As a workaround, consider adding 'imageio-ffmpeg' to requirements.txt so a bundled ffmpeg is available.",
         RuntimeWarning,
     )
 

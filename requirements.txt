@@ -5,7 +5,8 @@ python-dotenv
 python-docx
 fpdf
 tqdm
-ffmpeg
-ffprobe
+# For Streamlit Cloud and other PaaS where system ffmpeg isn't present,
+# include imageio-ffmpeg which provides a bundled ffmpeg binary.
+imageio-ffmpeg
 
 
