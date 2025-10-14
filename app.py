@@ -3,8 +3,8 @@ import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 from pydub import AudioSegment
-AudioSegment.ffmpeg = "/usr/bin/ffmpeg"
-AudioSegment.ffprobe = "/usr/bin/ffprobe"
+AudioSegment.ffmpeg = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffmpeg.exe"
+AudioSegment.ffprobe = r"E:/voice2_Project_Material/ffmpeg-8.0-essentials_build/ffmpeg-8.0-essentials_build/bin/ffprobe.exe"
 
 import os
 # print("ffprobe exists:", os.path.exists("/usr/bin/ffprobe"))
