@@ -4,6 +4,37 @@ import math
 import tempfile
 from pathlib import Path
 from pydub import AudioSegment
+from pydub.utils import which
+import warnings
+
+# Allow overriding ffmpeg/ffprobe via environment variables. This helps deployments
+# (Streamlit Cloud, Docker, servers) where system ffmpeg may be missing or in a
+# non-standard location. If environment variables are not set, pydub will try to
+# find ffmpeg/ffprobe on PATH and will emit a RuntimeWarning (the original error
+# you saw). We proactively check and set the paths here for clearer messages.
+_FFMPEG_PATH = os.environ.get("FFMPEG_PATH")
+_FFPROBE_PATH = os.environ.get("FFPROBE_PATH")
+
+if _FFMPEG_PATH:
+    AudioSegment.converter = _FFMPEG_PATH
+else:
+    # if not provided, try to auto-discover; if discovery fails pydub will warn later
+    _found = which("ffmpeg")
+    if _found:
+        AudioSegment.converter = _found
+
+if _FFPROBE_PATH:
+    AudioSegment.ffprobe = _FFPROBE_PATH
+else:
+    _found_probe = which("ffprobe")
+    if _found_probe:
+        AudioSegment.ffprobe = _found_probe
+
+if not getattr(AudioSegment, "converter", None) or not getattr(AudioSegment, "ffprobe", None):
+    warnings.warn(
+        "ffmpeg or ffprobe not configured. Install ffmpeg on the system or set FFMPEG_PATH and FFPROBE_PATH environment variables.",
+        RuntimeWarning,
+    )
 
 def ensure_wav_mono_16k(src_path: str, out_path: str = None):
     """
