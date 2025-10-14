@@ -12,6 +12,14 @@ from utils.audio_utils import ensure_wav_mono_16k, chunk_audio, duration_seconds
 from utils.gemini_client import upload_file, transcribe_file, summarize_text, answer_question
 from utils.export_utils import create_docx_from_text, create_pdf_from_text
 
+import warnings
+warnings.filterwarnings("ignore", category=SyntaxWarning)
+
+from pydub import AudioSegment
+AudioSegment.ffmpeg = "/usr/bin/ffmpeg"
+AudioSegment.ffprobe = "/usr/bin/ffprobe"
+
+
 st.set_page_config(page_title="Lecture → Notes", layout="wide")
 st.title("Lecture Voice → Notes (Streamlit + Gemini)")
 
