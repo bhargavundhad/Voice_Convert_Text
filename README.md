@@ -113,7 +113,7 @@ See [SECURITY.md](SECURITY.md) for detailed security guidelines.
    - Check that the key is valid
 
 2. **"File too large" errors**
-   - Maximum file size: 100MB
+   - Maximum file size: 200MB
    - Consider splitting longer recordings
 
 3. **API quota/rate limit errors**
